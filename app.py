@@ -1,6 +1,7 @@
 import numpy as np
 import time
 import math
+import pickle
 
 class Connect4:
     def __init__(self, width=7, height=6, player1='player1', player2='player2'):
@@ -13,6 +14,7 @@ class Connect4:
         self.__last_move = None
         self.__last_played = None
         self.__score = [276, 276]  #aywa hardcode
+        self.__depth = 4 #for difficulty
 
 
     def restart(self, width=7, height=6):
@@ -23,6 +25,40 @@ class Connect4:
         self.__last_move = None
         self.__last_played = None
         self.__score = [276, 276]  #aywa hardcode
+
+
+    def save(self):
+        dict = {}
+        with open('state.p', 'wb') as handle:
+            dict['board']  = self.__board
+            dict['pos'] = self.__pos
+            dict['player1'] = self.__player1
+            dict['player2'] = self.__player2
+            dict['width'] = self.__width
+            dict['height'] = self.__height
+            dict['last_move'] = self.__last_move
+            dict['last_played'] = self.__last_played
+            dict['score'] = self.__score
+            pickle.dump(dict, handle)
+            return 1
+        return 0
+
+
+    def load(self):
+        with open('state.p', 'rb') as handle:
+            dict = pickle.load(handle)
+            self.__board = dict['board']
+            self.__pos = dict['pos']
+            self.__player1 = dict['player1']
+            self.__player2 = dict['player2']
+            self.__width = dict['width']
+            self.__height = dict['height']
+            self.__last_move = dict['last_move']
+            self.__last_played = dict['last_played']
+            self.__score = dict['score']
+            return 1
+        return 0
+
 
     def play(self, player, col):
         row = self.__pos[col]
@@ -45,6 +81,9 @@ class Connect4:
         if index:
             return self.AI_play()
 
+
+    def set_depth(self, d):
+        self.__depth = d
 
     def get_state(self):
         return self.__board
@@ -247,7 +286,7 @@ class Connect4:
         state = self.get_full_state()
         alpha, beta = -float("inf"), float("inf")
         path = []
-        depth = 4
+        depth = self.__depth
         path, new_alpha, new_beta = self.dfs(state, path, alpha, beta, depth, True)
         #print(path, new_alpha, new_beta)
         n_states = self.next_state(state)
@@ -261,15 +300,7 @@ class Connect4:
 #         except:
 #             index = 0
 #         print(new_alpha, new_beta)
-        self.play(self.__player1, n_states[index][1][1])
-
-        ret = self.is_winner(self.get_full_state())
-        if ret == 1:
-            print('game ended,', self.__last_played, 'is winner!')
-            return 1
-        elif ret == -1:
-            print('game ended, there is no winner!!!')
-            return 0
+        return self.play(self.__player1, n_states[index][1][1])
 
 
     def start(self, first_play, col=None):
@@ -300,20 +331,14 @@ import sys
 from PySide2 import QtGui, QtCore, QtWidgets
 from PySide2.QtWidgets import QApplication, QPushButton, QWidget, QHBoxLayout, QVBoxLayout, QFileDialog, QLineEdit
 
-color1='red'
-color2='yellow'
 
-
-
-
-
-class Example(QWidget):
+class MainGUI(QWidget):
 
     started = QtCore.Signal()
     finished = QtCore.Signal()
 
     def __init__(self):
-        super(Example, self).__init__()
+        super(MainGUI, self).__init__()
 
 
 
@@ -388,6 +413,16 @@ class Example(QWidget):
         self.clickbutton6.move(x,120)
 
 
+        self.clickbutton0.setEnabled(False)
+        self.clickbutton1.setEnabled(False)
+        self.clickbutton2.setEnabled(False)
+        self.clickbutton3.setEnabled(False)
+        self.clickbutton4.setEnabled(False)
+        self.clickbutton5.setEnabled(False)
+        self.clickbutton6.setEnabled(False)
+
+
+
         self.restartbtn = QPushButton("Restart", self)
         self.restartbtn.setFixedSize(50, 32)
         #clickbutton.setStyleSheet("QPushButton{border-radius: 5px;background: #C71585; font:bold 16px;color: white;}")
@@ -404,6 +439,58 @@ class Example(QWidget):
 #         self.vbox.addWidget(self.restartbtn)
 
 
+
+        self.savebtn = QPushButton("Save", self)
+        self.savebtn.setFixedSize(50, 32)
+        #clickbutton.setStyleSheet("QPushButton{border-radius: 5px;background: #C71585; font:bold 16px;color: white;}")
+        self.savebtn.clicked.connect((lambda :game.save()))
+        self.savebtn.move(10,90)
+
+        self.loadbtn = QPushButton("Load", self)
+        self.loadbtn.setFixedSize(50, 32)
+        #clickbutton.setStyleSheet("QPushButton{border-radius: 5px;background: #C71585; font:bold 16px;color: white;}")
+        self.loadbtn.clicked.connect((lambda :self.load()))
+        self.loadbtn.move(10,130)
+
+
+
+        self.difficultybtn1 = QPushButton("Very Easy", self)
+        self.difficultybtn1.setFixedSize(80, 32)
+        #clickbutton.setStyleSheet("QPushButton{border-radius: 5px;background: #C71585; font:bold 16px;color: white;}")
+        self.difficultybtn1.clicked.connect((lambda :self.set_difficulty('ve')))
+        self.difficultybtn1.move(680,10)
+
+
+
+        self.difficultybtn2 = QPushButton("Easy", self)
+        self.difficultybtn2.setFixedSize(80, 32)
+        #clickbutton.setStyleSheet("QPushButton{border-radius: 5px;background: #C71585; font:bold 16px;color: white;}")
+        self.difficultybtn2.clicked.connect((lambda :self.set_difficulty('e')))
+        self.difficultybtn2.move(680,50)
+
+
+        self.difficultybtn3 = QPushButton("Medium", self)
+        self.difficultybtn3.setFixedSize(80, 32)
+        #clickbutton.setStyleSheet("QPushButton{border-radius: 5px;background: #C71585; font:bold 16px;color: white;}")
+        self.difficultybtn3.clicked.connect((lambda :self.set_difficulty('m')))
+        self.difficultybtn3.move(680,90)
+
+
+        self.difficultybtn4 = QPushButton("Hard", self)
+        self.difficultybtn4.setFixedSize(80, 32)
+        #clickbutton.setStyleSheet("QPushButton{border-radius: 5px;background: #C71585; font:bold 16px;color: white;}")
+        self.difficultybtn4.clicked.connect((lambda :self.set_difficulty('h')))
+        self.difficultybtn4.move(680,130)
+
+
+        self.difficultybtn5 = QPushButton("Very Hard", self)
+        self.difficultybtn5.setFixedSize(80, 32)
+        #clickbutton.setStyleSheet("QPushButton{border-radius: 5px;background: #C71585; font:bold 16px;color: white;}")
+        self.difficultybtn5.clicked.connect((lambda :self.set_difficulty('vh')))
+        self.difficultybtn5.move(680,170)
+
+
+
         self.label = QtWidgets.QLabel(self)
         #self.label.setFrameStyle(QFrame.Panel | QFrame.Sunken)
         self.label.setText("first line\nsecond line")
@@ -412,6 +499,11 @@ class Example(QWidget):
         self.label.setStyleSheet("QLabel{font:bold 29px;color:#6A5ACD}")
         self.label.hide()
 
+
+        self.aistartbtn.hide()
+        self.savebtn.hide()
+        self.loadbtn.hide()
+
         self.show()
 
 
@@ -419,6 +511,48 @@ class Example(QWidget):
         game.start('AI')
         self.update()
         self.aistartbtn.hide()
+
+
+    def load(self):
+        game.load()
+        self.update()
+        self.aistartbtn.hide()
+
+
+
+    def set_difficulty(self,diff):
+        if diff == 've':
+            game.set_depth(1)
+        elif diff == 'e':
+            game.set_depth(2)
+        elif diff == 'm':
+            game.set_depth(4)
+        elif diff == 'h':
+            game.set_depth(5)
+        elif diff == 'vh':
+            game.set_depth(7)
+
+        self.aistartbtn.show()
+        self.savebtn.show()
+        self.loadbtn.show()
+
+        self.difficultybtn1.hide()
+        self.difficultybtn2.hide()
+        self.difficultybtn3.hide()
+        self.difficultybtn4.hide()
+        self.difficultybtn5.hide()
+
+
+        self.clickbutton0.setDisabled(False)
+        self.clickbutton1.setDisabled(False)
+        self.clickbutton2.setDisabled(False)
+        self.clickbutton3.setDisabled(False)
+        self.clickbutton4.setDisabled(False)
+        self.clickbutton5.setDisabled(False)
+        self.clickbutton6.setDisabled(False)
+
+
+
 
 
     def paintEvent(self, e):
@@ -579,18 +713,23 @@ class Example(QWidget):
 
     def restart(self):
         print('restaring ...')
+
+
+        self.difficultybtn1.show()
+        self.difficultybtn2.show()
+        self.difficultybtn3.show()
+        self.difficultybtn4.show()
+        self.difficultybtn5.show()
+
+        self.aistartbtn.hide()
+        self.savebtn.hide()
+        self.loadbtn.hide()
+
         self.label.hide()
-        self.aistartbtn.show()
 
         game.restart()
 
-        self.clickbutton0.setDisabled(False)
-        self.clickbutton1.setDisabled(False)
-        self.clickbutton2.setDisabled(False)
-        self.clickbutton3.setDisabled(False)
-        self.clickbutton4.setDisabled(False)
-        self.clickbutton5.setDisabled(False)
-        self.clickbutton6.setDisabled(False)
+
 
         self.update()
 
@@ -604,7 +743,7 @@ class Example(QWidget):
 
 def main():
     app = QApplication(sys.argv)
-    ex = Example()
+    ex = MainGUI()
     sys.exit(app.exec_())
 
 
