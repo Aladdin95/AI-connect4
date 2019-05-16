@@ -202,9 +202,9 @@ class MainGUI(QWidget):
         self.drawRectangles(qp)
         qp.end()
 
-    def col(self,n):
+    def col(self, n):
         print(n)
-        result = game.play(game.get_player2(),n)
+        result = game.play(game.get_player2(), n)
         self.update()
         self.aistartbtn.hide()
 
@@ -254,9 +254,10 @@ class MainGUI(QWidget):
             self.clickbutton5.setEnabled(False)
             self.clickbutton6.setEnabled(False)
 
-        elif result == -1:
-            print('No one wins')
-
+        elif result == 0:
+            print('No one wins!!!')
+            self.label.setText("There is No Winner!!!")
+            self.label.show()
 #             label1 = QtWidgets.QLabel(text="AI Wins !")
 #             vbox = QVBoxLayout(self)
 #             vbox.addWidget(label1)
@@ -342,6 +343,14 @@ class MainGUI(QWidget):
         self.difficultybtn3.show()
         self.difficultybtn4.show()
         self.difficultybtn5.show()
+
+        self.clickbutton0.setEnabled(False)
+        self.clickbutton1.setEnabled(False)
+        self.clickbutton2.setEnabled(False)
+        self.clickbutton3.setEnabled(False)
+        self.clickbutton4.setEnabled(False)
+        self.clickbutton5.setEnabled(False)
+        self.clickbutton6.setEnabled(False)
 
         self.aistartbtn.hide()
         self.savebtn.hide()

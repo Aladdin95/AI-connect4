@@ -259,10 +259,10 @@ class Connect4:
                     else:
                         if new_alpha < beta:
                             beta = new_alpha; modified = True
-                    if alpha >= beta:    #cut off
-                        break
                     if modified:
                         best_path = new_path; modified = False
+                    if alpha >= beta:    #cut off
+                        break
 
                 path = best_path
         else:
